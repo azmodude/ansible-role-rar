@@ -1,0 +1,10 @@
+---
+# defaults file for ansible-role-rar
+install_path: "/usr/local/bin"
+
+arch: "x64"
+version: "5.4.b2"
+url_x64: "http://www.rarlab.com/rar/rarlinux-x64-{{version}}.tar.gz"
+sha256sum_x64: ed14c9dafab6a516b258914ddaa55f71b95599e0c6653e50c70020b0442091bb
+url_i32: "http://www.rarlab.com/rar/rarlinux-{{version}}.tar.gz"
+sha256sum_i32: 0519c083e5b503ff581f3ae3cb6415b8efbe74800762f04b3ccb6735543e544e

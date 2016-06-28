@@ -1,0 +1,56 @@
+---
+# unfortunately rar/unrar have no real version switches, so check for mere
+# existence of the commands
+- name: Check rar existence
+  stat: path="{{install_path}}/rar"
+  register: rar
+- name: Check unrar existence
+  stat: path="{{install_path}}/unrar"
+  register: unrar
+
+- block:
+  - block:
+    - name: Set architecture url to download (x64)
+      set_fact: rar_url={{url_x64}}
+    - set_fact: rar_sha256sum={{sha256sum_x64}}
+    when: arch == 'x64' or arch not in ('x64', 'i32')
+  - block:
+    - name: Set architecture url to download (i32)
+      set_fact: rar_url={{url_i32}}
+    - set_fact: rar_sha256sum={{sha256sum_i32}}
+    when: arch == 'i32'
+  - set_fact: rar_destination={{rar_url.split('/')[-1]}}
+  # use get_url because unarchive itself does not validate sha256sums (yet)
+  - name: Fetch archive
+    get_url: >
+      url="{{rar_url}}"
+      dest=/tmp/{{rar_destination}}
+      checksum="sha256:{{rar_sha256sum}}"
+  - name: unpack to temporary directory
+    unarchive: >
+      src=/tmp/{{rar_destination}}
+      dest=/tmp
+      creates=/tmp/rar
+      copy=False
+  - name: copy rar and unrar executables into path (unrar)
+    copy: >
+      src=/tmp/rar/unrar
+      dest="{{install_path}}"
+      remote_src=True
+  - file: >
+      path="{{install_path}}/unrar"
+      mode=0755
+  - name: copy rar and unrar executables into path (unrar)
+    copy: >
+      src=/tmp/rar/rar
+      dest="{{install_path}}"
+      remote_src=True
+  - file: >
+      path="{{install_path}}/rar"
+      mode=0755
+  - name: remove temporary directory
+    file: >
+      path=/tmp/rar
+      state=absent
+  when: not (rar.stat.exists and unrar.stat.exists) or rar.stat.mode != "0755" or unrar.stat.mode != "0755"
+
